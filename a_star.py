@@ -33,7 +33,7 @@ def a_star(problem):
 
 
     open_nodes = PriorityQueue() #nos vistos mas nao visitados
-    closed_nodes = PriorityQueue() #nos vistos e visitados
+    closed_nodes = []
     
     #obtem estado inicial
     current_state = problem.get_start_state()
@@ -45,28 +45,52 @@ def a_star(problem):
 
     #inicializa lista de nos vistos com o no inicial
     open_nodes.put(node)
-    while(open_nodes.empty):
+    while(not open_nodes.empty()):
         #recebe proximo no a ser visitado - no de menor custo
         node = open_nodes.get()
-        
+        print("Explorando nó: %i - custo: %i" %(node.city, node.node_cost))
+
         if(problem.is_goal_state(node.state)):
             print("Solução encontrada")
-            return node.state
+            break;
 
         #visita vizinhos do estado atual
         next_states = problem.get_next_states(node.state)
-
+        print("next_states: ", next_states)   
         #visita nós vizinhos
         for state in next_states:
             new_node = Node(state=state[0], path_cost=state[2], heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=state[0][-2])
+            print("inserindo em open_nodes")
 
             open_nodes.put(new_node)
 
         #fecha no que teve seus vizinhos visitados
-        closed_nodes.put(node)
+        closed_nodes.append(node)
+        print("Fechando no:", node.city)
+        print( )
 
-    
+
+    print("Solução encontrada: ", node.state)
+
+    print("nos fechados")
+    for i in closed_nodes:
+        print(i.city)
+
+    path = []
+    path.append(node.city)
+    while(node.city != 0 and node != None):
+        #node recebe valor de seu nodo pai
+        for n in closed_nodes:
+            if(n.city == node.parent_node):
+                path.append(n.city)
+                node = n 
+
+        # node = next((n for n in closed_nodes if n.city == node.parent_node), None)
+        # path.append(node.city)
+
+    print("Caminho encontrado: ", path)
+
 if __name__ == "__main__":
-    problem = TSP('instances/berlin15.tsp')
+    problem = TSP('instances/berlin10.tsp')
     path = a_star(problem)
     # print(path, problem.evaluate(path))
