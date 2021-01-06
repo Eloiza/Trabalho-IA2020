@@ -38,40 +38,34 @@ def a_star(problem):
     #obtem estado inicial
     current_state = problem.get_start_state()
 
+    print("estado inicial:", current_state)
+
     #cria primeiro nó com o estado inicial
-	node = Node(initial_state=current_state[0], 
-				path_cost=current_state[2], 
-				heuristic_cost=problem.get_heuristic(current_state[0]), 
-				city=current_state[1],
-				parent_node=current_state[0][-2])
+    node = Node(state=(0,), path_cost=0, heuristic_cost=problem.get_heuristic(current_state), city=0, parent_node=0)
 
-	#inicializa lista de nos vistos com o no inicial
-	open_nodes.put(node)
-  	while(len(open_nodes) > 0 or not problem.is_goal_state(node.initial_state)):
-  		#recebe proximo no a ser visitado - no de menor custo
-  		node = open_nodes.get()
+    #inicializa lista de nos vistos com o no inicial
+    open_nodes.put(node)
+    while(open_nodes.empty):
+        #recebe proximo no a ser visitado - no de menor custo
+        node = open_nodes.get()
+        
+        if(problem.is_goal_state(node.state)):
+            print("Solução encontrada")
+            return node.state
 
-  		#visita vizinhos do estado atual
-  		next_states = problem.get_next_states(node.initial_state)
+        #visita vizinhos do estado atual
+        next_states = problem.get_next_states(node.state)
 
-	  	#visita nós vizinhos
-	  	for state in next_states:
-	  		new_node = Node(initial_state=state[0], 
-	  						path_cost=state[2], 
-	  						heuristic_cost=problem.get_heuristic(state[0]), 
-	  						city=state[1],
-	  						parent_node=state[0][-2])
+        #visita nós vizinhos
+        for state in next_states:
+            new_node = Node(state=state[0], path_cost=state[2], heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=state[0][-2])
 
-	  		open_nodes.put(new_node)
+            open_nodes.put(new_node)
 
-	  	#fecha no que teve seus vizinhos visitados
-	  	closed_nodes.put(node)
+        #fecha no que teve seus vizinhos visitados
+        closed_nodes.put(node)
 
-	  	#recebe proximo nó a ser visitado - nó de menor heuristica
-	  	node = open_nodes.get()
-
-    print("Melhor estado", best)
-    	
+    
 if __name__ == "__main__":
     problem = TSP('instances/berlin15.tsp')
     path = a_star(problem)
