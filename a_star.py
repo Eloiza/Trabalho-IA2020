@@ -51,7 +51,7 @@ def a_star(problem):
     print("estado inicial:", current_state)
 
     #cria primeiro nó com o estado inicial
-    node = Node(state=(0,), path_cost=0, heuristic_cost=problem.get_heuristic(current_state), city=0, parent_node=0)
+    node = Node(state=(0,), path_cost=0, heuristic_cost=problem.get_heuristic(current_state), city=0, parent_node=None)
 
     #inicializa lista de nos vistos com o no inicial
     open_nodes.append(node)
@@ -61,8 +61,8 @@ def a_star(problem):
         node = open_nodes.pop(0)
         closed_nodes.append(node)
 
-        print("Explorando nó: %i de pai %i - custo t: %i - custo_p: %i" %(node.city, node.parent_node, node.node_cost, node.path_cost))
-
+        print("Explorando nó: %i - custo t: %i - custo_p: %i" %(node.city, node.node_cost, node.path_cost))
+        print("Current_state", node.state)
         if(problem.is_goal_state(node.state)):
             print("Solução encontrada")
             break;
@@ -80,16 +80,16 @@ def a_star(problem):
         print("next_states h: ", hs)
         print("next_states f: ", fs)
 
-        print( )
-        print("Lista nós fechados:")
-        print_nodelist(closed_nodes)
-        print("Lista nós abertos:")
-        print_nodelist(open_nodes)
+        # print( )
+        # print("Lista nós fechados:")
+        # print_nodelist(closed_nodes)
+        # print("Lista nós abertos:")
+        # print_nodelist(open_nodes)
 
         #criando nós filhos do nó atual
         children = []
         for state in next_states:
-            new_node = Node(state=state[0], path_cost=state[2], heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=node.city)
+            new_node = Node(state=state[0], path_cost=state[2] + node.path_cost, heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=node)
             children.append(new_node)
 
         #analisa filhos para saber melhor opcao
@@ -102,35 +102,25 @@ def a_star(problem):
             #se nó filho a ser explorado testa seu custo
             copy = find_node(child, open_nodes)
             if(copy):
-                # continue
-                new_g = node.path_cost + child.path_cost #calcula custo total real - custo ate aqui + custo até o nó filho
-                if(child.path_cost < copy.path_cost):    #troca pai da criança se tiver menor valor 
-                    copy.path_cost = child.path_cost
-                    copy.parent_node = node.city
+                if(child.path_cost > copy.path_cost):
+                    continue
 
-
-            else:
-                #atualiza custo total do caminho percorrido + novo nó
-                child.path_cost = node.path_cost + child.path_cost
-                child.parent_node = node.city
-                open_nodes.append(child)
-
+            open_nodes.append(child)
 
 
     print("Solução encontrada: ", node.state)
+
     path = []
-    path.append(node.city + 1)
     custo = 0
-    while(node.city != 0 and node != None):
-        #node recebe valor de seu nodo pai
-        for n in closed_nodes:
-            if(n.city == node.parent_node):
-                path.append(n.city + 1)
-                custo += n.path_cost
-                node = n 
+    ultimo_custo = node.node_cost
+    while(node != None):
+        path.append(node.city + 1)
+        node = node.parent_node 
+
     path.reverse()
     print("Caminho encontrado: ", path)
-    print("Custo do caminho: ", custo)
+    print("Custo calculado: ", custo)
+    print("Custo ultimo no: ", ultimo_custo)
 
 if __name__ == "__main__":
     problem = TSP('instances/berlin10.tsp')
