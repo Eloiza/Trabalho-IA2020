@@ -61,7 +61,8 @@ def a_star(problem):
     while(len(open_nodes) > 0):
         #recebe proximo no a ser visitado - no de menor custo
         open_nodes.sort()   #fazer sort pelo custo
-        node = open_nodes[0]
+        node = open_nodes.pop(0)
+        closed_nodes.append(node)
         # node = open_nodes.get()
 
         print("Explorando nó: %i - custo: %i" %(node.city, node.node_cost))
@@ -74,20 +75,25 @@ def a_star(problem):
         next_states = problem.get_next_states(node.state)
         print("next_states: ", next_states) 
 
-        #visita nós vizinhos
+        children = []
         for state in next_states:
-            #caso nó não inserido em open_nodes ou closed_nodes insere na lista de nos abertos
-            if(not find_node(state[1], open_nodes) and not find_node(state[1], closed_nodes)):
-                new_node = Node(state=state[0], path_cost=state[2], heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=state[0][-2])
-                print("inserindo node %s em open_nodes" %(new_node))
+            new_node = Node(state=state[0], path_cost=state[2], heuristic_cost=problem.get_heuristic(state[0]), city=state[1], parent_node=node.city)
+            children.append(new_node)
 
-                # open_nodes.put(new_node)
-                open_nodes.append(new_node)
+        for child in children:
+            if(find_node(child, closed_nodes)):
+                 continue
 
-        #fecha no que teve seus vizinhos visitados
-        print("Fechando no:", node.city)
-        closed_nodes.append(node)
-        open_nodes.pop(0)   #remove nodo da lista de nos abertos
+            if(find_node(child, open_nodes)):
+                new_g = node.path_cost + child.path_cost
+                if(child.path_cost > node.path_cost):
+                    child.path_cost = new_g
+                    child.parent_node
+
+            else:
+                child.path_cost = node.path_cost + child.path_cost
+                open_nodes.append(child)
+
 
         print( )
         print("Lista nós fechados:")
@@ -116,6 +122,6 @@ def a_star(problem):
     print("Caminho encontrado: ", path)
 
 if __name__ == "__main__":
-    problem = TSP('instances/berlin10.tsp')
+    problem = TSP('instances/berlin4.tsp')
     path = a_star(problem)
     # print(path, problem.evaluate(path))
