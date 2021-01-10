@@ -1,7 +1,6 @@
 from queue import PriorityQueue
 from tsp import TSP
 
-
 class Node():
     def __init__(self, state, path_cost, heuristic_cost, city, parent_node):
         self.state = state
@@ -41,7 +40,6 @@ def find_node(node_name, node_list):
 def a_star(problem):
     print("Resolvendo entrada: %s" %(problem))
 
-
     open_nodes = []     #nos visto mas não visitados
     closed_nodes = []   #nos vistos e visitados
     
@@ -61,30 +59,13 @@ def a_star(problem):
         node = open_nodes.pop(0)
         closed_nodes.append(node)
 
-        # print("Explorando nó: %i - custo t: %i - custo_p: %i" %(node.city, node.node_cost, node.path_cost))
-        # print("Current_state", node.state)
+        #caso nó tiver o estado objetivo encerra a busca
         if(problem.is_goal_state(node.state)):
             print("Solução encontrada")
             break;
 
         #recebe nós adjacentes ao nó atual
         next_states = problem.get_next_states(node.state)
-        # print("next_states g: ", next_states) 
-        
-        hs = []
-        fs = []
-        for i in next_states:
-            hs.append((i[0],i[1],problem.get_heuristic(i[0])))
-            fs.append((i[0],i[1],problem.get_heuristic(i[0]) + i[2] + node.path_cost))
-
-        # print("next_states h: ", hs)
-        # print("next_states f: ", fs)
-
-        # print( )
-        # print("Lista nós fechados:")
-        # print_nodelist(closed_nodes)
-        # print("Lista nós abertos:")
-        # print_nodelist(open_nodes)
 
         #criando nós filhos do nó atual
         children = []
@@ -100,25 +81,37 @@ def a_star(problem):
 
             copy = find_node(child, open_nodes)
             if(copy):
+                #se o no estiver na lista aberta e tiver custo maior que o já inserido 
+                #segue para prox filho
                 if(child.path_cost > copy.path_cost):
                     continue
 
+            #se não adiciona a lista de nós abertos
             open_nodes.append(child)
 
 
-    print("Solução encontrada: ", node.state)
+    print("Estado final encontrada: ", node.state)
 
+    #backtracking para determinar o caminho encontrado
     path = []
     ultimo_custo = node.node_cost
     while(node != None):
-        path.append(node.city + 1)
+        path.append(node.city)
         node = node.parent_node 
 
     path.reverse()
     print("Caminho encontrado: ", path)
     print("Custo ultimo no: ", ultimo_custo)
 
+    return path
+
 if __name__ == "__main__":
-    problem = TSP('instances/berlin16.tsp')
-    path = a_star(problem)
-    # print(path, problem.evaluate(path))
+    import sys
+    if(len(sys.argv) != 2):
+        print("Número inválido de argumentos :(\nUsage: python3 a_star.py arquivo.tsp")
+        sys.exit()
+
+    else: 
+        problem = TSP(sys.argv[1])
+        path = a_star(problem)
+        print(path, problem.evaluate(path))
