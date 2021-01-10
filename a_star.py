@@ -61,15 +61,15 @@ def a_star(problem):
         node = open_nodes.pop(0)
         closed_nodes.append(node)
 
-        print("Explorando nó: %i - custo t: %i - custo_p: %i" %(node.city, node.node_cost, node.path_cost))
-        print("Current_state", node.state)
+        # print("Explorando nó: %i - custo t: %i - custo_p: %i" %(node.city, node.node_cost, node.path_cost))
+        # print("Current_state", node.state)
         if(problem.is_goal_state(node.state)):
             print("Solução encontrada")
             break;
 
         #recebe nós adjacentes ao nó atual
         next_states = problem.get_next_states(node.state)
-        print("next_states g: ", next_states) 
+        # print("next_states g: ", next_states) 
         
         hs = []
         fs = []
@@ -77,8 +77,8 @@ def a_star(problem):
             hs.append((i[0],i[1],problem.get_heuristic(i[0])))
             fs.append((i[0],i[1],problem.get_heuristic(i[0]) + i[2] + node.path_cost))
 
-        print("next_states h: ", hs)
-        print("next_states f: ", fs)
+        # print("next_states h: ", hs)
+        # print("next_states f: ", fs)
 
         # print( )
         # print("Lista nós fechados:")
@@ -98,8 +98,6 @@ def a_star(problem):
             if(find_node(child, closed_nodes)):
                  continue
 
-            ##PROBLEMA AQUI##
-            #se nó filho a ser explorado testa seu custo
             copy = find_node(child, open_nodes)
             if(copy):
                 if(child.path_cost > copy.path_cost):
@@ -111,7 +109,6 @@ def a_star(problem):
     print("Solução encontrada: ", node.state)
 
     path = []
-    custo = 0
     ultimo_custo = node.node_cost
     while(node != None):
         path.append(node.city + 1)
@@ -119,10 +116,9 @@ def a_star(problem):
 
     path.reverse()
     print("Caminho encontrado: ", path)
-    print("Custo calculado: ", custo)
     print("Custo ultimo no: ", ultimo_custo)
 
 if __name__ == "__main__":
-    problem = TSP('instances/berlin10.tsp')
+    problem = TSP('instances/berlin16.tsp')
     path = a_star(problem)
     # print(path, problem.evaluate(path))
