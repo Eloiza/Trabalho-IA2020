@@ -36,6 +36,7 @@ def random_population(problem, pop_size):
 
 #original pop_size=50 e max_gen=2000
 def genetic_algorithm(problem, pop_size=5, max_gen=10):
+    mutation_chance = 0.10
     population = random_population(problem, pop_size)
     fitness_history = []
     best_permutation = None
@@ -65,24 +66,62 @@ def genetic_algorithm(problem, pop_size=5, max_gen=10):
 
         print(individual.select_prob)
 
-    # selected_pop = []
     parents = []
+    new_population = []
+
     while(len(new_population) < pop_size):
         #select two parents
         for i in range(2):
             rand_num = random.random()  #gera número aleatorio entre 0 e 1
+            print("Numero random", rand_num)
             for individual in population:
-                if(individual.select_prob[0] >= rand_num and individual.select_prob[1] <=rand_num):
+                print("select_prob[0]: ", individual.select_prob[0])
+                print("select_prob[1]: ", individual.select_prob[1])
+                print()
+
+                if(individual.select_prob[0] <= rand_num and individual.select_prob[1] <=rand_num):
                     parents.append(individual)
 
         #-------------------Cruzamento------------------------
         #                    crossover
+        print("Pais selecionados")
+        print("p1:", parents[0].permutation)
+        print("p2:", parents[1].permutation)
 
-        new_population.append(Individual())
+        genes = parents[0].permutation[:int(len(parents[0].permutation)/2)]
+        genes += parents[1].permutation[int(len(parents[0].permutation)/2):]
+
+        print("offspring gens:", genes)
+
+        offspring = Individual(permutation=genes, fitness=problem.evaluate(genes))
+
+        #--------------------Mutação---------------------------
+        #                     troca
+        rand_num = random.random()
+        #caso num prox a taxa de mutacao realiza troca de cromossomos
+        if(rand_num <= mutation_chance):
+
+            #a troca vai ocorrer entre o index 1 e 2 escolhidos randomicamente
+            index1 = random.randint(0, len(offspring.permutation))
+            index2 = random.randint(0, len(offspring.permutation))
+
+            #faz com que os indexes realmente sejam diferentes
+            while(index1 == index2):
+                index1 = random.randint(0, len(offspring.permutation))
+
+            aux = offspring.permutation[index1]
+
+            #alg de troca
+            offspring.permutation[index1] = offspring.permutation[index2]
+            offspring.permutation[index2] = aux
+            #ter certeza que o cruzamento rendeu um filho valido para o problema
+
+        new_population.append(offspring)
     #Cruzamento
         #order crossover, order based, position based, partially mapped cycle
     #Mutação
         #- inserção ou troca
+
     #Seleção de individuos para a prox geracao 
         #- geracional, uniforme, competição, elitismo
 
