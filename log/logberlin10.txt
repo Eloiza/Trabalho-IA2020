@@ -1,0 +1,7 @@
+Resolvendo entrada: TSP_berlin10
+estado inicial: (0,)
+Solução encontrada
+Estado final encontrada:  (0, 3, 9, 1, 2, 6, 4, 7, 5, 8)
+Caminho encontrado:  [0, 7, 2, 9, 5, 4, 6, 3, 1, 8]
+Custo ultimo no:  4889
+[0, 7, 2, 9, 5, 4, 6, 3, 1, 8] 4889

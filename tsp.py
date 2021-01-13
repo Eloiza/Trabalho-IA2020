@@ -92,6 +92,8 @@ class TSP():
         return 0,
 
     def is_goal_state(self, state):
+        # print("is_goal_state: len(state): ", len(state))
+        # print("is_goal_state: self.size: ", self.size)
         return len(state) == self.size
 
     def __get_unvisited(self, state):

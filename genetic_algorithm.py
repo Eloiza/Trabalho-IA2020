@@ -159,6 +159,7 @@ def genetic_algorithm(problem, pop_size=5, max_gen=10):
 
     parents = []
     new_population = []
+
     while(len(new_population) < pop_size):
         #seleciona dois pais
         for i in range(2):
@@ -202,6 +203,11 @@ def genetic_algorithm(problem, pop_size=5, max_gen=10):
             #ter certeza que o cruzamento rendeu um filho valido para o problema
 
         new_population.append(offspring)
+    #Cruzamento
+        #order crossover, order based, position based, partially mapped cycle
+    #Mutação
+        #- inserção ou troca
+
     #Seleção de individuos para a prox geracao 
         #- geracional, uniforme, competição, elitismo
 
