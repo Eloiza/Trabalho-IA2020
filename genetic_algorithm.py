@@ -171,18 +171,30 @@ def generation_review(problem, fitness_history, population, best_permutation):
 
     return  best_permutation, fitness_history
 
-def is_evolving(fitness_history):
-    n_gen = len(fitness_history)
+def is_evolving(fitness_history, gen_checkpoint, best_fitness):
+    start_index = len(fitness_history) - gen_checkpoint
+    search_list = fitness_history[start_index:]
+    if(best_fitness in search_list):
+        return True
+
+    return False
+
     
 #original pop_size=50 e max_gen=2000
 def genetic_algorithm(problem, pop_size=5, max_gen=10):
     mutation_chance = 0.10
     population = random_population(problem, pop_size)
     fitness_history = []
-    best_permutation = None
+    best_permutation = population[0].permutation
+
+    #avalia primeira geração
+    best_permutation, fitness_history = genetic_review(problem, fitness_history, population, best_permutation)
     gen = 0 
 
-    while(gen < max_gen or no_improvement):
+    #quando 1/4 do algoritmo tiver rodado será testado se foram feitas modificações
+    gen_checkpoint = int(max_gen/4)
+
+    while(gen < max_gen and is_evolving):
 
         #-------------------Seleção de pais ---------------------
         #                       roleta 
@@ -243,6 +255,12 @@ def genetic_algorithm(problem, pop_size=5, max_gen=10):
 
         #avalia nova população
         best_permutation, fitness_history = generation_review(problem, fitness_history, population, best_permutation)
+
+        #caso tenha chegado a um checkpoint
+        if(not gen%gen_checkpoint):
+            #verifica se houve melhoria desde o ultimo checkpoint
+            is_evolving = is_evolving(fitness_history, gen_checkpoint, problem.evaluate(best_permutation))
+
 
     return best_permutation, fitness_history
 
