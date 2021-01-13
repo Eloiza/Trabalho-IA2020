@@ -115,8 +115,5 @@ if __name__ == "__main__":
     else: 
         problem = TSP(sys.argv[1])
         path = a_star(problem)
-<<<<<<< HEAD
         print(path, problem.evaluate(path))
-=======
         print(path, problem.evaluate(path))
->>>>>>> 891ffb02c91cc7f6ce37b1b9bfd50cb424e4a2cb
