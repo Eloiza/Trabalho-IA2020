@@ -48,12 +48,10 @@ def roulette_wheel(population):
         fitness_ratio = individual.fitness / fitness_sum
 
         #recebe intervalo da roleta em que pode ser escolhido (min, max)
-        individual.select_prob = (prob_sum, prob_sum + fitness_ratio)
+        individual.select_prob = (round(prob_sum, 3), round(prob_sum + fitness_ratio, 3))
 
         #atualiza soma de probabilidades para setar o inicio da prox seção
         prob_sum += fitness_ratio
-
-        print(individual.select_prob)
 
     return population
 
@@ -98,118 +96,153 @@ def map_genome(cut_indexes, genome, map_from, map_to):
     return genome
 
 
-def crossover(parents):
-    #(x x x |4 5 6| x x)
-    cut1, cut2 = select_random_cut(len(parents[0].permutation))
-    
-    children = []
-    for p in parents:
-        children.append(copy.deepcopy(p.permutation))
-
-    children[0][cut1:cut2] = copy.deepcopy(parents[1][cut1:cut2])
-    children[1][cut1:cut2] = copy.deepcopy(parents[0][cut1:cut2])
-   
-
-####################################################################
+def crossover(problem, parents):
+    #guarda genoma dos pais
     p1_genome = parents[0].permutation
     p2_genome = parents[1].permutation
 
-    print("p1_genome", p1_genome)
-    print("p2_genome", p2_genome)
+    #seleciona uma região de corte aleatória
+    cut1, cut2 = select_random_cut(len(p1_genome))
 
-    cut1, cut2 = select_random_cut(len(parents[0].permutation))
-    print("crossover:  cut1: %i, cut2: %i" %(cut1, cut2))
+    #copia genoma de um dos pais para os filhos
+    child1 = copy.deepcopy(p1_genome)
+    child2 = copy.deepcopy(p2_genome)
 
-    child1 = copy.deepcopy(parents[0].permutation)
-    child2 = copy.deepcopy(parents[1].permutation)
-
+    #faz o crossover com um segmento do outro pai
     child1[cut1:cut2] = copy.deepcopy(p2_genome[cut1:cut2])
     child2[cut1:cut2] = copy.deepcopy(p1_genome[cut1:cut2])
 
-    print("child1", child1)
-    print("child2", child2)
-
-    #salva parte herdada do pai
+    #salva parte principal do crossover herdada do pai
     cut_section_c1 = p2_genome[cut1:cut2]
     cut_section_c2 = p1_genome[cut1:cut2]
 
-    print("cut_section_c1", cut_section_c1)
-    print("cut_section_c2", cut_section_c2)
-
     section_indexes = range(cut1,cut2)
+
+    #faz o mapeamento do genoma para obter um genoma valido
     while(not is_valid_genome(child1)):
         child1 = map_genome(cut_indexes=section_indexes, genome=child1, map_from=cut_section_c1, map_to=cut_section_c2)
-        print(child1)
+        # print(child1)
 
-    while(not is_valid_genome(child1)):
-        child1 = map_genome(cut_indexes=section_indexes, genome=child1, map_from=cut_section_c1, map_to=cut_section_c2)
-        print(child1)
+    #mapeamento para o segundo filho
+    while(not is_valid_genome(child2)):
+        child2 = map_genome(cut_indexes=section_indexes, genome=child2, map_from=cut_section_c2, map_to=cut_section_c1)
+        # print(child2)
 
-    return child1
+    children = []
+    children.append(Individual(permutation=child1, fitness= problem.evaluate(child1)))
+    children.append(Individual(permutation=child2, fitness= problem.evaluate(child1)))
+
+    return children
+
+def mutation(problem, individual):
+
+    #a troca vai ocorrer entre o index1 e index2 escolhidos randomicamente
+    index1 = random.randint(0, len(individual.permutation)-1)
+    index2 = random.randint(0, len(individual.permutation)-1)
+
+    #garante indexes diferentes
+    while(index1 == index2):
+        index1 = random.randint(0, len(individual.permutation))
+
+    aux = individual.permutation[index1]
+
+    #alg de troca
+    individual.permutation[index1] = individual.permutation[index2]
+    individual.permutation[index2] = aux
+
+    #atualiza fitness do individuo
+    individual.fitness = problem.evaluate(individual.permutation)
+
+    return individual
+
+def generation_review(problem, fitness_history, population, best_permutation):
+    #busca melhor individuo da geracao passada
+    best_ind = population[0]
+    for i in population:
+        if(i.fitness > best_ind.fitness):
+            best_ind = i
+
+    #adiciona fitness do melhor individuo no historico
+    fitness_history.append(best_ind.fitness)
+
+    #se for maior que o registro atualiza a melhor permutacao
+    if(best_ind.fitness > problem.evaluate(best_permutation)):
+        best_permutation = best_ind.permutation
+
+    return  best_permutation, fitness_history
+
+def is_evolving(fitness_history):
+    n_gen = len(fitness_history)
+    
 #original pop_size=50 e max_gen=2000
 def genetic_algorithm(problem, pop_size=5, max_gen=10):
     mutation_chance = 0.10
     population = random_population(problem, pop_size)
     fitness_history = []
     best_permutation = None
+    gen = 0 
 
-    #-------------------Seleção de pais ---------------------
-    #                       roleta 
-    population = roulette_wheel(population)
+    while(gen < max_gen or no_improvement):
 
-    parents = []
-    new_population = []
+        #-------------------Seleção de pais ---------------------
+        #                       roleta 
+        population = roulette_wheel(population)
 
-    while(len(new_population) < pop_size):
-        #seleciona dois pais
-        for i in range(2):
-            rand_num = random.random()  #gera número aleatorio entre 0 e 1
-            print("Numero random", rand_num)
-            for individual in population:
-                print("select_prob[0]: ", individual.select_prob[0])
-                print("select_prob[1]: ", individual.select_prob[1])
-                print()
 
-                if(individual.select_prob[0] <= rand_num and individual.select_prob[1] <=rand_num):
-                    parents.append(individual)
+        new_population = []
+        while(len(new_population) < pop_size):
+            parents = []
+            #seleciona dois pais
+            for i in range(2):
+                rand_num = round(random.random(), 3)  #gera número aleatorio entre 0 e 1
+                print("Numero random", rand_num)
+                for individual in population:
+                    # print()
+                    # print("if(%f <= %f and %f <= %f)" %(individual.select_prob[0], rand_num, individual.select_prob[1], rand_num))
+                    print("if(%f >= %f and %f >= %f)" %(rand_num, individual.select_prob[0], individual.select_prob[1], rand_num))
 
-        #-------------------Cruzamento------------------------
-        #                    crossover
-        print("Pais selecionados")
-        print("p1:", parents[0].permutation)
-        print("p2:", parents[1].permutation)
+                    # if(individual.select_prob[0] <= rand_num and individual.select_prob[1] <= rand_num):
+                    if(rand_num >= individual.select_prob[0] and individual.select_prob[1] >= rand_num):
 
-        offspring = crossover(parents)
+                        print("selecionado:")
+                        print("select_prob[0]: ", individual.select_prob[0])
+                        print("select_prob[1]: ", individual.select_prob[1])
+                        print()
+                        parents.append(individual)
+                        break
 
-        #--------------------Mutação---------------------------
-        #                     troca
-        # rand_num = random.random()
-        # #caso num prox a taxa de mutacao realiza troca de cromossomos
-        # if(rand_num <= mutation_chance):
+            #-------------------Cruzamento------------------------
+            #                    crossover
+            print("Pais selecionados")
+            print("p1:", parents[0].permutation)
+            print("p2:", parents[1].permutation)
 
-        #     #a troca vai ocorrer entre o index 1 e 2 escolhidos randomicamente
-        #     index1 = random.randint(0, len(offspring.permutation))
-        #     index2 = random.randint(0, len(offspring.permutation))
+            #faz o crossover e cria dois novos individuos
+            offspring = crossover(problem, parents)
+            print("offspring1: ", offspring[0].permutation)
+            print("offspring2: ", offspring[1].permutation)
+            print()
 
-        #     #faz com que os indexes realmente sejam diferentes
-        #     while(index1 == index2):
-        #         index1 = random.randint(0, len(offspring.permutation))
 
-        #     aux = offspring.permutation[index1]
+            #--------------------Mutação---------------------------
+            #                     troca
 
-        #     #alg de troca
-        #     offspring.permutation[index1] = offspring.permutation[index2]
-        #     offspring.permutation[index2] = aux
-            #ter certeza que o cruzamento rendeu um filho valido para o problema
+            rand_num = random.random()
+            #caso num prox a taxa de mutacao realiza troca de cromossomos
+            if(rand_num <= mutation_chance):
+                #escolhe randomicamente qual dos dois será mutado
+                rand_index = random.randint(0,1)
+                offspring[rand_index] = mutation(problem, offspring[rand_index])
 
-        new_population.append(offspring)
-    #Cruzamento
-        #order crossover, order based, position based, partially mapped cycle
-    #Mutação
-        #- inserção ou troca
 
-    #Seleção de individuos para a prox geracao 
-        #- geracional, uniforme, competição, elitismo
+            new_population.append(copy.deepcopy(offspring[0]))
+            new_population.append(copy.deepcopy(offspring[1]))
+
+        population = new_population
+        gen += 1
+
+        #avalia nova população
+        best_permutation, fitness_history = generation_review(problem, fitness_history, population, best_permutation)
 
     return best_permutation, fitness_history
 
