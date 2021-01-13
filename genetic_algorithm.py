@@ -142,7 +142,7 @@ def mutation(problem, individual):
 
     #garante indexes diferentes
     while(index1 == index2):
-        index1 = random.randint(0, len(individual.permutation))
+        index1 = random.randint(0, len(individual.permutation)-1)
 
     aux = individual.permutation[index1]
 
@@ -156,17 +156,17 @@ def mutation(problem, individual):
     return individual
 
 def generation_review(problem, fitness_history, population, best_permutation):
-    #busca melhor individuo da geracao passada
+    #busca melhor individuo da geracao - individuo com menor custo
     best_ind = population[0]
     for i in population:
-        if(i.fitness > best_ind.fitness):
+        if(i.fitness < best_ind.fitness):
             best_ind = i
 
     #adiciona fitness do melhor individuo no historico
     fitness_history.append(best_ind.fitness)
 
     #se for maior que o registro atualiza a melhor permutacao
-    if(best_ind.fitness > problem.evaluate(best_permutation)):
+    if(best_ind.fitness < problem.evaluate(best_permutation)):
         best_permutation = best_ind.permutation
 
     return  best_permutation, fitness_history
@@ -179,61 +179,49 @@ def is_evolving(fitness_history, gen_checkpoint, best_fitness):
 
     return False
 
-    
+def select_parents(population):
+    parents = []
+    #seleciona dois pais
+    for i in range(2):
+        rand_num = round(random.random(), 3)  #gera número aleatorio entre 0 e 1
+        for individual in population:
+
+            #verifica a qual setor da roleta esse valor pertence 
+            if(rand_num >= individual.select_prob[0] and individual.select_prob[1] >= rand_num):
+                parents.append(individual)
+                break
+
+    return parents
+
 #original pop_size=50 e max_gen=2000
-def genetic_algorithm(problem, pop_size=5, max_gen=10):
+def genetic_algorithm(problem, pop_size=50, max_gen=2000):
     mutation_chance = 0.10
     population = random_population(problem, pop_size)
     fitness_history = []
     best_permutation = population[0].permutation
 
     #avalia primeira geração
-    best_permutation, fitness_history = genetic_review(problem, fitness_history, population, best_permutation)
+    best_permutation, fitness_history = generation_review(problem, fitness_history, population, best_permutation)
+
     gen = 0 
+    gen_checkpoint = int(max_gen/4) #quando 1/4 das geraçoes forem geradas é testado se há ganho de desempenho
+    has_upgrade = 1                 #se tiver melhorado a melhor permutacao em 1/4 de geracoes fica 1
 
-    #quando 1/4 do algoritmo tiver rodado será testado se foram feitas modificações
-    gen_checkpoint = int(max_gen/4)
-
-    while(gen < max_gen and is_evolving):
+    while(gen < max_gen and has_upgrade):
 
         #-------------------Seleção de pais ---------------------
         #                       roleta 
-        population = roulette_wheel(population)
-
+        population = roulette_wheel(population) #inicializa valores para a roleta de seleção de pais
 
         new_population = []
         while(len(new_population) < pop_size):
-            parents = []
-            #seleciona dois pais
-            for i in range(2):
-                rand_num = round(random.random(), 3)  #gera número aleatorio entre 0 e 1
-                print("Numero random", rand_num)
-                for individual in population:
-                    # print()
-                    # print("if(%f <= %f and %f <= %f)" %(individual.select_prob[0], rand_num, individual.select_prob[1], rand_num))
-                    print("if(%f >= %f and %f >= %f)" %(rand_num, individual.select_prob[0], individual.select_prob[1], rand_num))
 
-                    # if(individual.select_prob[0] <= rand_num and individual.select_prob[1] <= rand_num):
-                    if(rand_num >= individual.select_prob[0] and individual.select_prob[1] >= rand_num):
-
-                        print("selecionado:")
-                        print("select_prob[0]: ", individual.select_prob[0])
-                        print("select_prob[1]: ", individual.select_prob[1])
-                        print()
-                        parents.append(individual)
-                        break
+            parents = select_parents(population) #seleciona dois pais aleatórios da população 
 
             #-------------------Cruzamento------------------------
             #                    crossover
-            print("Pais selecionados")
-            print("p1:", parents[0].permutation)
-            print("p2:", parents[1].permutation)
 
-            #faz o crossover e cria dois novos individuos
-            offspring = crossover(problem, parents)
-            print("offspring1: ", offspring[0].permutation)
-            print("offspring2: ", offspring[1].permutation)
-            print()
+            offspring = crossover(problem, parents) #faz crossover e cria dois novos individuos
 
 
             #--------------------Mutação---------------------------
@@ -259,13 +247,13 @@ def genetic_algorithm(problem, pop_size=5, max_gen=10):
         #caso tenha chegado a um checkpoint
         if(not gen%gen_checkpoint):
             #verifica se houve melhoria desde o ultimo checkpoint
-            is_evolving = is_evolving(fitness_history, gen_checkpoint, problem.evaluate(best_permutation))
+            has_upgrade = is_evolving(fitness_history, gen_checkpoint, problem.evaluate(best_permutation))
 
-
+    print("Total de gerações", gen)
     return best_permutation, fitness_history
 
 
 if __name__ == "__main__":
-    problem = TSP('instances/berlin4.tsp')
+    problem = TSP('instances/berlin10.tsp')
     best_solution, fitness_history = genetic_algorithm(problem)
-    # print(best_solution, problem.evaluate(best_solution))
+    print(best_solution, problem.evaluate(best_solution))
