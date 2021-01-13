@@ -1,0 +1,7 @@
+Resolvendo entrada: TSP_berlin15
+estado inicial: (0,)
+Solução encontrada
+Estado final encontrada:  (0, 11, 12, 4, 1, 9, 7, 2, 14, 6, 10, 5, 3, 8, 13)
+Caminho encontrado:  [0, 1, 6, 2, 7, 8, 9, 14, 4, 5, 3, 11, 10, 12, 13]
+Custo ultimo no:  4967
+[0, 1, 6, 2, 7, 8, 9, 14, 4, 5, 3, 11, 10, 12, 13] 4967
