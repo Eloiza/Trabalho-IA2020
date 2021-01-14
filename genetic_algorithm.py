@@ -171,14 +171,6 @@ def generation_review(problem, fitness_history, population, best_permutation):
 
     return  best_permutation, fitness_history
 
-def is_evolving(fitness_history, gen_checkpoint, best_fitness):
-    start_index = len(fitness_history) - gen_checkpoint
-    search_list = fitness_history[start_index:]
-    if(best_fitness in search_list):
-        return True
-
-    return False
-
 def select_parents(population):
     parents = []
     #seleciona dois pais
@@ -243,12 +235,6 @@ def genetic_algorithm(problem, pop_size=50, max_gen=2000):
 
         #avalia nova população
         best_permutation, fitness_history = generation_review(problem, fitness_history, population, best_permutation)
-
-        #caso tenha chegado a um checkpoint
-        # if(not gen%gen_checkpoint):
-        #     print("gen %i trigou checkpoint" %(gen))
-        #     #verifica se houve melhoria desde o ultimo checkpoint
-        #     has_upgrade = is_evolving(fitness_history, gen_checkpoint, problem.evaluate(best_permutation))
 
     return best_permutation, fitness_history
 
