@@ -16,4 +16,4 @@ Para a execução do trabalho basta clonar o repostório e digitar na linha de c
 ```
 python3 run.py
 ```
-Ao executar este arquivo, o algoritmo genético e A* serão aplicados para todas as instâncias da pasta `instances` escolhida.
+Ao executar este arquivo, o Algoritmo Genético e A* serão aplicados para todas as instâncias da pasta `instances`. Na pasta `log` foram registradas alguns resultados obtido com o Algoritmo A* e a pasta `fitness_history` possui um gráfico com a variação da fitness ao longo das gerações. 
